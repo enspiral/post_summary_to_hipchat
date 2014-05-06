@@ -33,55 +33,6 @@ class Minutedock
 		hash = json.parse()
 	end
 
-	def get_name_by_id(hash, id)
-		hash.reject! { |data| return data["name"] if data["id"] == id }
-	end
-
-
-	def get_id_from_entrydata(entrydata, id_name)
-		id = entrydata[id_name]
-	end
-
-
-	def get_item_by_url(hash, url, id_name)
-		hash.map { |data|
-			id = get_id_from_entrydata(data, id_name)
-			info = get_collective_data(url, user, pass)
-
-			if id.class == Array
-				item = id.map{ |i| get_name_by_id(info, i)}.join(",")
-			else
-				item = get_name_by_id(info, id)
-			end
-		}
-
-	end
-
-
-	def get_item(hash, id_name)
-		hash.map { |data|
-			item = data[id_name]
-		}
-	end
-
-	def change_second_to_hour(times)
-		times.map { |time|
-			time = time / 60 / 60.0
-			time = "#{time.round(1)}h"
-		}
-	end
-
-
-	def make_statement(results, category)
-		results.map { |result|
-			if result.nil? || result.empty?
-				result = "No " + category
-			else
-				result = category + SEPARATOR + result
-			end
-		}
-	end
-
 	def get_summary
 		if url
 			item = get_item_by_url(hash, url, id_name)
@@ -103,7 +54,53 @@ class Minutedock
 		return summaries
 	end
 
+	private
 
+	def get_name_by_id(hash, id)
+		hash.reject! { |data| return data["name"] if data["id"] == id }
+	end
+
+	def get_id_from_entrydata(entrydata, id_name)
+		id = entrydata[id_name]
+	end
+
+	def get_item_by_url(hash, url, id_name)
+		hash.map { |data|
+			id = get_id_from_entrydata(data, id_name)
+			info = get_collective_data(url, user, pass)
+
+			if id.class == Array
+				item = id.map{ |i| get_name_by_id(info, i)}.join(",")
+			else
+				item = get_name_by_id(info, id)
+			end
+		}
+
+	end
+
+	def get_item(hash, id_name)
+		hash.map { |data|
+			item = data[id_name]
+		}
+	end
+
+	def change_second_to_hour(times)
+		times.map { |time|
+			time = time / 60 / 60.0
+			time = "#{time.round(1)}h"
+		}
+	end
+
+	def make_statement(results, category)
+		results.map { |result|
+			if result.nil? || result.empty?
+				result = "No " + category
+			else
+				result = category + SEPARATOR + result
+			end
+		}
+	end
+	
 end
 
 entry_data = Minutedock.new(:url => url_entry).get_collective_data(url_entry, user, pass)
