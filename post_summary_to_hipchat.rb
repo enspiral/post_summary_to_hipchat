@@ -34,19 +34,8 @@ class Minutedock
     else
       item = get_item(hash, id_name)
       item = change_second_to_hour(item) if id_name == "duration"
-  end
-
+    end
   summary = make_statement(item, category)
-  end
-
-  def put_together(contact, project, task, time, desciption)
-    length = contact.length
-
-    summaries = []
-      length.times{ |i|
-        summaries << contact[i] + "  " + project[i] + "  " + task[i] + "  " + time[i] + "  " + desciption[i]
-    }
-    return summaries
   end
 
   private
@@ -97,6 +86,19 @@ class Minutedock
 
 end
 
+class DailyTimeTextPresenter
+    def put_together(contact, project, task, time, desciption)
+    length = contact.length
+
+    summaries = []
+      length.times{ |i|
+        summaries << contact[i] + "  " + project[i] + "  " + task[i] + "  " + time[i] + "  " + desciption[i]
+    }
+    return summaries
+  end
+end
+
+
 ayumi = Minutedock.new(:user => user, :pass => pass)
 entry_data = ayumi.get_collective_data(url_entry)
 contact = ayumi.get_summary(url_contact, entry_data, "contact_id", "Contact")
@@ -105,8 +107,8 @@ task = ayumi.get_summary(url_task, entry_data, "task_ids", "Task")
 time = ayumi.get_summary(entry_data, "duration", "Time")
 desc = ayumi.get_summary(entry_data, "description", "Description")
 
-puts summaries = ayumi.put_together(contact, project, task, time, desc)
-
+daily_time = DailyTimeTextPresenter.new
+puts summaries = daily_time.put_together(contact, project, task, time, desc)
 
 client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
 summaries.map { |summary|
