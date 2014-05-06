@@ -15,25 +15,21 @@ pass = "minute4649"
 
 class Minutedock
 
-	attr_reader :hash, :url, :id_name, :category, :user, :pass
+	attr_reader :user, :pass
 
 	def initialize(args)
-		@hash = args[:hash]
-		@url = args[:url]
-		@id_name = args[:id_name]
-		@category = args[:category]
 		@user = args[:user]
 		@pass = args[:pass]
 	end
 
 
-	def get_collective_data(url, user, pass)
+	def get_collective_data(url)
 		result = open(url, :http_basic_authentication => [user, pass]).read
 		json = JSON.parser.new(result)
 		hash = json.parse()
 	end
 
-	def get_summary
+	def get_summary(url = nil, hash, id_name, category)
 		if url
 			item = get_item_by_url(hash, url, id_name)
 		else
@@ -67,7 +63,7 @@ class Minutedock
 	def get_item_by_url(hash, url, id_name)
 		hash.map { |data|
 			id = get_id_from_entrydata(data, id_name)
-			info = get_collective_data(url, user, pass)
+			info = get_collective_data(url)
 
 			if id.class == Array
 				item = id.map{ |i| get_name_by_id(info, i)}.join(",")
@@ -100,17 +96,19 @@ class Minutedock
 			end
 		}
 	end
-	
+
 end
 
-entry_data = Minutedock.new(:url => url_entry).get_collective_data(url_entry, user, pass)
+ayumi = Minutedock.new(:user => user, :pass => pass)
+entry_data = ayumi.get_collective_data(url_entry)
+contact = ayumi.get_summary(url_contact, entry_data, "contact_id", "Contact")
+project = ayumi.get_summary(url_project, entry_data, "project_id", "Project")
+task = ayumi.get_summary(url_task, entry_data, "task_ids", "Task")
+time = ayumi.get_summary(entry_data, "duration", "Time")
+desc = ayumi.get_summary(entry_data, "description", "Description")
 
-contact = Minutedock.new(:hash => entry_data, :url => url_contact, :id_name => "contact_id", :category => "Contact", :user => user, :pass => pass).get_summary
-project = Minutedock.new(:hash => entry_data, :url => url_project, :id_name => "project_id", :category => "Project", :user => user, :pass => pass).get_summary
-task = Minutedock.new(:hash => entry_data, :url => url_task, :id_name => "task_ids", :category => "Task", :user => user, :pass => pass).get_summary
-time = Minutedock.new(:hash => entry_data, :id_name => "duration", :category => "Time", :user => user, :pass => pass).get_summary
-desc = Minutedock.new(:hash => entry_data, :id_name => "description", :category => "Description", :user => user, :pass => pass).get_summary
 puts summaries = Minutedock.put_together(contact, project, task, time, desc)
+
 
 client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
 summaries.map { |summary|
