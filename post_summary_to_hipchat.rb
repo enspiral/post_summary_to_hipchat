@@ -40,7 +40,7 @@ class Minutedock
 		summary = make_statement(item, category)
 	end
 
-	def self.put_together(contact, project, task, time, desciption)
+	def put_together(contact, project, task, time, desciption)
 		length = contact.length
 
 		summaries = []
@@ -107,7 +107,7 @@ task = ayumi.get_summary(url_task, entry_data, "task_ids", "Task")
 time = ayumi.get_summary(entry_data, "duration", "Time")
 desc = ayumi.get_summary(entry_data, "description", "Description")
 
-puts summaries = Minutedock.put_together(contact, project, task, time, desc)
+puts summaries = ayumi.put_together(contact, project, task, time, desc)
 
 
 client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
