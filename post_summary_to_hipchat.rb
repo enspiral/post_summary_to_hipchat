@@ -15,17 +15,18 @@ pass = "minute4649"
 
 class Minutedock
 
-  attr_reader :user, :pass
+  attr_reader :user, :pass, :format
 
   def initialize(args)
     @user = args[:user]
     @pass = args[:pass]
+    @format = args[:format]
   end
 
   def get_collective_data(url)
     result = open(url, :http_basic_authentication => [user, pass]).read
     json = JSON.parser.new(result)
-      hash = json.parse()
+    hash = json.parse()
   end
 
   def get_summary(url = nil, hash, id_name, category)
@@ -33,9 +34,9 @@ class Minutedock
       item = get_item_by_url(hash, url, id_name)
     else
       item = get_item(hash, id_name)
-      item = change_second_to_hour(item) if id_name == "duration"
+      item = format.change_second_to_hour(item) if id_name == "duration"
     end
-  summary = make_statement(item, category)
+    summary = format.make_statement(item, category)
   end
 
   private
@@ -67,6 +68,20 @@ class Minutedock
     }
   end
 
+end
+
+class DailyTimeTextPresenter
+
+    def put_together(contact, project, task, time, desciption)
+    length = contact.length
+
+    summaries = []
+      length.times{ |i|
+        summaries << contact[i] + "  " + project[i] + "  " + task[i] + "  " + time[i] + "  " + desciption[i]
+    }
+    return summaries
+  end
+
   def change_second_to_hour(times)
     times.map { |time|
       time = time / 60 / 60.0
@@ -84,22 +99,11 @@ class Minutedock
     }
   end
 
-end
 
-class DailyTimeTextPresenter
-    def put_together(contact, project, task, time, desciption)
-    length = contact.length
-
-    summaries = []
-      length.times{ |i|
-        summaries << contact[i] + "  " + project[i] + "  " + task[i] + "  " + time[i] + "  " + desciption[i]
-    }
-    return summaries
-  end
 end
 
 
-ayumi = Minutedock.new(:user => user, :pass => pass)
+ayumi = Minutedock.new(:user => user, :pass => pass, :format => DailyTimeTextPresenter.new)
 entry_data = ayumi.get_collective_data(url_entry)
 contact = ayumi.get_summary(url_contact, entry_data, "contact_id", "Contact")
 project = ayumi.get_summary(url_project, entry_data, "project_id", "Project")
