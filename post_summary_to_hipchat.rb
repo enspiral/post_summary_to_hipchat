@@ -15,12 +15,11 @@ pass = "minute4649"
 
 class Minutedock
 
-  attr_reader :user, :pass, :format
+  attr_reader :user, :pass
 
   def initialize(args)
     @user = args[:user]
     @pass = args[:pass]
-    @format = args[:format]
   end
 
   def get_collective_data(url)
@@ -29,14 +28,12 @@ class Minutedock
     hash = json.parse()
   end
 
-  def get_summary(url = nil, hash, id_name, category)
+   def get_item(url = nil, hash, id_name)
     if url
-      item = get_item_by_url(hash, url, id_name)
+      item = get_item_by_id(hash, url, id_name)
     else
-      item = get_item(hash, id_name)
-      item = format.change_second_to_hour(item) if id_name == "duration"
+      item = get_item_by_name(hash, id_name)
     end
-    summary = format.make_statement(item, category)
   end
 
   private
@@ -49,7 +46,7 @@ class Minutedock
     id = entrydata[id_name]
   end
 
-  def get_item_by_url(hash, url, id_name)
+  def get_item_by_id(hash, url, id_name)
     hash.map { |data|
       id = get_id_from_entrydata(data, id_name)
       info = get_collective_data(url)
@@ -62,7 +59,7 @@ class Minutedock
 
   end
 
-  def get_item(hash, id_name)
+  def get_item_by_name(hash, id_name)
     hash.map { |data|
       item = data[id_name]
     }
@@ -72,15 +69,22 @@ end
 
 class DailyTimeTextPresenter
 
-    def put_together(contact, project, task, time, desciption)
+  def present(item, category)
+    item = change_second_to_hour(item) if category == "Time"
+    summary = make_statement(item, category)
+  end
+
+  def put_together(contact, project, task, time, desciption)
     length = contact.length
 
     summaries = []
-      length.times{ |i|
-        summaries << contact[i] + "  " + project[i] + "  " + task[i] + "  " + time[i] + "  " + desciption[i]
+    length.times{ |i|
+      summaries << contact[i] + "  " + project[i] + "  " + task[i] + "  " + time[i] + "  " + desciption[i]
     }
     return summaries
   end
+
+  private
 
   def change_second_to_hour(times)
     times.map { |time|
@@ -99,22 +103,30 @@ class DailyTimeTextPresenter
     }
   end
 
-
 end
 
 
-ayumi = Minutedock.new(:user => user, :pass => pass, :format => DailyTimeTextPresenter.new)
+ayumi = Minutedock.new(:user => user, :pass => pass)
+presenter = DailyTimeTextPresenter.new
 entry_data = ayumi.get_collective_data(url_entry)
-contact = ayumi.get_summary(url_contact, entry_data, "contact_id", "Contact")
-project = ayumi.get_summary(url_project, entry_data, "project_id", "Project")
-task = ayumi.get_summary(url_task, entry_data, "task_ids", "Task")
-time = ayumi.get_summary(entry_data, "duration", "Time")
-desc = ayumi.get_summary(entry_data, "description", "Description")
 
-daily_time = DailyTimeTextPresenter.new
-puts summaries = daily_time.put_together(contact, project, task, time, desc)
+contact_data = ayumi.get_item(url_contact, entry_data, "contact_id")
+project_data = ayumi.get_item(url_project, entry_data, "project_id")
+task_data = ayumi.get_item(url_task, entry_data, "task_ids")
+time_data = ayumi.get_item(entry_data, "duration")
+desc_data = ayumi.get_item(entry_data, "description")
+
+
+contact = presenter.present(contact_data, "Contact")
+project = presenter.present(project_data, "Project")
+task = presenter.present(task_data, "Task")
+time = presenter.present(time_data, "Time")
+desc =  presenter.present(desc_data, "Description")
+
+summaries = presenter.put_together(contact, project, task, time, desc)
 
 client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
 summaries.map { |summary|
-	client["test"].send('Ayumi Udaka', summary)
+  client["test"].send('Ayumi Udaka', summary)
 }
+
