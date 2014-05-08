@@ -8,7 +8,7 @@ MINUTEDOCK_URL = "https://minutedock.com/api/v1/"
 yesterday = (Date.today - 1).strftime('%d%b%Y')
 
 api_keys = []
-IO.foreach('./../api_keys.txt') { |key| api_keys << key.chomp }
+IO.foreach('./../api_keys.txt') { |key| api_keys << key.chomp.split(":") }
 
 class Minutedock
 
@@ -96,14 +96,12 @@ class DailyTimeTextPresenter
 end
 
 
-
 api_keys.map{ |key|
 
-  url_entry = "#{MINUTEDOCK_URL}entries.json?api_key=#{key}&from=#{yesterday}&to=#{yesterday}"
-
-  url_contact = "#{MINUTEDOCK_URL}contacts.json?api_key=#{key}"
-  url_project = "#{MINUTEDOCK_URL}projects.json?api_key=#{key}"
-  url_task = "#{MINUTEDOCK_URL}tasks.json?api_key=#{key}"
+  url_entry = "#{MINUTEDOCK_URL}entries.json?api_key=#{key[1]}&from=#{yesterday}&to=#{yesterday}"
+  url_contact = "#{MINUTEDOCK_URL}contacts.json?api_key=#{key[1]}"
+  url_project = "#{MINUTEDOCK_URL}projects.json?api_key=#{key[1]}"
+  url_task = "#{MINUTEDOCK_URL}tasks.json?api_key=#{key[1]}"
   user = Minutedock.new
 
   presenter = DailyTimeTextPresenter.new
@@ -125,7 +123,7 @@ api_keys.map{ |key|
   puts summaries = presenter.put_together(contact, project, task, time, desc)
 
   client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
-  #client["BotLab"].send('Minutedock', "s time summary of yesterday")
+  client["BotLab"].send('Minutedock', "#{key[0]}'s time summary of yesterday")
   summaries.map { |summary|
     client["BotLab"].send('Minutedock', summary)
   }
