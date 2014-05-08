@@ -6,24 +6,14 @@ require 'json/pure'
 SEPARATOR = ":"
 MINUTEDOCK_URL = "https://minutedock.com/api/v1/"
 yesterday = (Date.today - 1).strftime('%d%b%Y')
-url_entry = "#{MINUTEDOCK_URL}entries.json?users=18590&from=#{yesterday}&to=#{yesterday}"
-url_contact = "#{MINUTEDOCK_URL}contacts.json"
-url_project = "#{MINUTEDOCK_URL}projects.json"
-url_task = "#{MINUTEDOCK_URL}tasks.json"
-user = "ayumi.highroof@gmail.com"
-pass = "minute4649"
+
+api_keys = []
+IO.foreach('./../api_keys.txt') { |key| api_keys << key.chomp }
 
 class Minutedock
 
-  attr_reader :user, :pass
-
-  def initialize(args)
-    @user = args[:user]
-    @pass = args[:pass]
-  end
-
   def get_collective_data(url)
-    result = open(url, :http_basic_authentication => [user, pass]).read
+    result = open(url).read
     json = JSON.parser.new(result)
     hash = json.parse()
   end
@@ -106,27 +96,38 @@ class DailyTimeTextPresenter
 end
 
 
-ayumi = Minutedock.new(:user => user, :pass => pass)
-presenter = DailyTimeTextPresenter.new
-entry_data = ayumi.get_collective_data(url_entry)
 
-contact_data = ayumi.get_item(url_contact, entry_data, "contact_id")
-project_data = ayumi.get_item(url_project, entry_data, "project_id")
-task_data = ayumi.get_item(url_task, entry_data, "task_ids")
-time_data = ayumi.get_item(entry_data, "duration")
-desc_data = ayumi.get_item(entry_data, "description")
+api_keys.map{ |key|
+
+  url_entry = "#{MINUTEDOCK_URL}entries.json?api_key=#{key}&from=#{yesterday}&to=#{yesterday}"
+
+  url_contact = "#{MINUTEDOCK_URL}contacts.json?api_key=#{key}"
+  url_project = "#{MINUTEDOCK_URL}projects.json?api_key=#{key}"
+  url_task = "#{MINUTEDOCK_URL}tasks.json?api_key=#{key}"
+  user = Minutedock.new
+
+  presenter = DailyTimeTextPresenter.new
+
+  entry_data = user.get_collective_data(url_entry)
+  contact_data = user.get_item(url_contact, entry_data, "contact_id")
+  project_data = user.get_item(url_project, entry_data, "project_id")
+  task_data = user.get_item(url_task, entry_data, "task_ids")
+  time_data = user.get_item(entry_data, "duration")
+  desc_data = user.get_item(entry_data, "description")
 
 
-contact = presenter.present(contact_data, "Contact")
-project = presenter.present(project_data, "Project")
-task = presenter.present(task_data, "Task")
-time = presenter.present(time_data, "Time")
-desc =  presenter.present(desc_data, "Description")
+  contact = presenter.present(contact_data, "Contact")
+  project = presenter.present(project_data, "Project")
+  task = presenter.present(task_data, "Task")
+  time = presenter.present(time_data, "Time")
+  desc =  presenter.present(desc_data, "Description")
 
-summaries = presenter.put_together(contact, project, task, time, desc)
+  puts summaries = presenter.put_together(contact, project, task, time, desc)
 
-client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
-summaries.map { |summary|
-  client["test"].send('Ayumi Udaka', summary)
+  client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
+  #client["BotLab"].send('Minutedock', "s time summary of yesterday")
+  summaries.map { |summary|
+    client["BotLab"].send('Minutedock', summary)
+  }
+
 }
-
