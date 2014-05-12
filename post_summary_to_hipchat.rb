@@ -10,6 +10,7 @@ yesterday = (Date.today - 1).strftime('%d%b%Y')
 api_keys = []
 IO.foreach('./../api_keys.txt') { |key| api_keys << key.chomp.split(":") }
 
+
 class Minutedock
 
   def get_collective_data(url)
@@ -26,6 +27,17 @@ class Minutedock
     end
   end
 
+  def add_time(project, time, unique_hash, project_name)
+    project.length.times { |i|
+      if project_name.include?(project[i])
+        unique_hash.map { |hash| hash[:time] += time[i].to_i if hash.has_value?(project[i])}
+      else
+        unique_hash << Hash[project: project[i], time: time[i].to_i] unless project[i].empty? || time[i].empty?
+        project_name << project[i]
+      end
+    }
+  end
+  
   private
 
   def get_name_by_id(hash, id)
@@ -60,9 +72,10 @@ end
 class DailyTimeTextPresenter
 
   def present(item, category)
-    item = change_second_to_hour(item) if category == "Time"
+    item = item.map{ |item| change_second_to_hour(item).to_s } if category == "Time"
     summary = make_statement(item, category)
   end
+
 
   def put_together(contact, project, task, time, desciption)
     length = contact.length
@@ -74,17 +87,29 @@ class DailyTimeTextPresenter
     return summaries
   end
 
+=begin
+  def put_together(array, *args)
+    array << args
+  end
+=end
+  def convert_time(interval = 2.0, time)
+      time = change_second_to_hour(time)
+      time = round_to_nearest(interval, time)
+  end
+
   private
 
-  def change_second_to_hour(times)
-    times.map { |time|
-      time = time / 60 / 60.0
-      time = "#{time.round(1)}h"
-    }
+  def round_to_nearest(interval, time)
+    time = (time * interval).round / interval
+  end
+
+  def change_second_to_hour(time)
+    time = (time / 60 / 60.0).round(1)
   end
 
   def make_statement(results, category)
     results.map { |result|
+
       if result.nil? || result.empty?
         result = "No " + category
       else
@@ -92,40 +117,40 @@ class DailyTimeTextPresenter
       end
     }
   end
-
+  
 end
 
+project_data = []
+time_data = []
+project_name = []
+hash = []
+result = []
+
+user = Minutedock.new
+presenter = DailyTimeTextPresenter.new
 
 api_keys.map{ |key|
 
   url_entry = "#{MINUTEDOCK_URL}entries.json?api_key=#{key[1]}&from=#{yesterday}&to=#{yesterday}"
-  url_contact = "#{MINUTEDOCK_URL}contacts.json?api_key=#{key[1]}"
+
   url_project = "#{MINUTEDOCK_URL}projects.json?api_key=#{key[1]}"
-  url_task = "#{MINUTEDOCK_URL}tasks.json?api_key=#{key[1]}"
-  user = Minutedock.new
-
-  presenter = DailyTimeTextPresenter.new
-
+  
+  
   entry_data = user.get_collective_data(url_entry)
-  contact_data = user.get_item(url_contact, entry_data, "contact_id")
-  project_data = user.get_item(url_project, entry_data, "project_id")
-  task_data = user.get_item(url_task, entry_data, "task_ids")
-  time_data = user.get_item(entry_data, "duration")
-  desc_data = user.get_item(entry_data, "description")
 
+  project_data = user.get_item(url_project, entry_data, "project_id").join(",").split(",")
+  time_data = user.get_item(entry_data, "duration").join(",").split(",")
 
-  contact = presenter.present(contact_data, "Contact")
-  project = presenter.present(project_data, "Project")
-  task = presenter.present(task_data, "Task")
-  time = presenter.present(time_data, "Time")
-  desc =  presenter.present(desc_data, "Description")
-
-  puts summaries = presenter.put_together(contact, project, task, time, desc)
-
-  client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
-  client["BotLab"].send('Minutedock', "#{key[0]}'s time summary of yesterday")
-  summaries.map { |summary|
-    client["BotLab"].send('Minutedock', summary)
-  }
+  user.add_time(project_data, time_data, hash, project_name)
 
 }
+
+hash.map{ |hash|
+  print "##{hash[:project]} #{presenter.convert_time(hash[:time])},"
+}
+
+
+
+
+
+
