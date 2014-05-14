@@ -35,10 +35,11 @@ api_keys.map{ |key|
   user.add_time(project_item, time_item, project_time, project_name)
 }
 
+
 project =  presenter.format_project_time(project_time)
 personal = presenter.format_personal_time(personal_time)
 
-puts result_string = presenter.put_together("Yesterday, Craftworks spent time on (in person hours):", project, " ", "Each person spent (billable/unbillable): ", personal)
+result_string = presenter.put_together("Yesterday, Craftworks spent time on (in person hours):", project, "\n", "Each person spent (billable/unbillable):", personal)
 
-#client["test"].send('Minutedock', result_string)
+client["BotLab"].send('Minutedock', result_string)
 
