@@ -37,15 +37,34 @@ class Minutedock
       end
     }
   end
-  
-  private
 
-  def get_name_by_id(hash, id)
-    hash.reject! { |data| return data["name"] if data["id"] == id }
+  def separate_bill_unbill_time(entrydata, category_data, id_name, result, name)
+    unbilliable = 0
+    billiable = 0
+
+    entrydata.map{|hash|
+      id = get_id_from_entrydata(hash, id_name)
+      time = hash["duration"].to_i
+      rate =  get_field_by_id(category_data, id, "default_rate_dollars").to_i
+
+      if rate <= 0 || rate.nil?
+        unbilliable += time
+      else
+        billiable += time
+      end
+    }
+    result << Hash[name: name, billiable: billiable, unbilliable: unbilliable] 
   end
+
+  private
 
   def get_id_from_entrydata(entrydata, id_name)
     id = entrydata[id_name]
+  end
+
+
+  def get_field_by_id(hash, id, field_name = "name")
+    hash.reject! { |data| return data[field_name] if data["id"] == id }
   end
 
   def get_item_by_id(hash, url, id_name)
@@ -53,9 +72,9 @@ class Minutedock
       id = get_id_from_entrydata(data, id_name)
       info = get_collective_data(url)
       if id.class == Array
-        item = id.map{ |i| get_name_by_id(info, i)}.join(",")
+        item = id.map{ |i| get_field_by_id(info, i)}.join(",")
       else
-        item = get_name_by_id(info, id)
+        item = get_field_by_id(info, id)
       end
     }
 
@@ -72,12 +91,11 @@ end
 class DailyTimeTextPresenter
 
   def present(item, category)
-    item = item.map{ |item| change_second_to_hour(item).to_s } if category == "Time"
+    item = item.map{ |item| convert_time(item).to_s } if category == "Time"
     summary = make_statement(item, category)
   end
 
-
-  def put_together(contact, project, task, time, desciption)
+  def make_statement_per_entry(contact, project, task, time, desciption)
     length = contact.length
 
     summaries = []
@@ -87,17 +105,42 @@ class DailyTimeTextPresenter
     return summaries
   end
 
-=begin
-  def put_together(array, *args)
-    array << args
+  def format_project_time(hash)
+    result = []
+    hash.map{ |hash| 
+      time = convert_time(hash[:time])
+      result << "##{hash[:project]} #{time}"
+    }
+    result
   end
-=end
+
+  def format_personal_time(hash)
+    result = []
+    hash.map{ |hash|
+      billiable = convert_time(hash[:billiable])
+      unbilliable = convert_time(hash[:unbilliable])
+      result << "#{hash[:name]} (#{billiable} / #{unbilliable})"
+    }
+    result
+  end
+
+  def put_together(*args)
+    array = []
+    array << args
+    array.join(" ")
+  end
+
   def convert_time(interval = 2.0, time)
       time = change_second_to_hour(time)
       time = round_to_nearest(interval, time)
   end
 
   private
+
+  def get_value_by_key(hash, *key)
+    array = []
+    array << hash.values
+  end
 
   def round_to_nearest(interval, time)
     time = (time * interval).round / interval
@@ -120,37 +163,33 @@ class DailyTimeTextPresenter
   
 end
 
-project_data = []
-time_data = []
 project_name = []
-hash = []
-result = []
+project_time = []
+personal_time = []
 
 user = Minutedock.new
 presenter = DailyTimeTextPresenter.new
+client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
 
 api_keys.map{ |key|
 
   url_entry = "#{MINUTEDOCK_URL}entries.json?api_key=#{key[1]}&from=#{yesterday}&to=#{yesterday}"
-
   url_project = "#{MINUTEDOCK_URL}projects.json?api_key=#{key[1]}"
   
-  
   entry_data = user.get_collective_data(url_entry)
-
-  project_data = user.get_item(url_project, entry_data, "project_id").join(",").split(",")
-  time_data = user.get_item(entry_data, "duration").join(",").split(",")
-
-  user.add_time(project_data, time_data, hash, project_name)
-
+  project_data = user.get_collective_data(url_project)
+  
+  user.separate_bill_unbill_time(entry_data, project_data, "project_id", personal_time, key[0])
+  
+  project_item = user.get_item(url_project, entry_data, "project_id").join(",").split(",")
+  time_item = user.get_item(entry_data, "duration").join(",").split(",")
+  user.add_time(project_item, time_item, project_time, project_name)
 }
 
-hash.map{ |hash|
-  print "##{hash[:project]} #{presenter.convert_time(hash[:time])},"
-}
+project =  presenter.format_project_time(project_time)
+personal = presenter.format_personal_time(personal_time)
 
+result_string = presenter.put_together("Yesterday, Craftworks spent time on (in person hours):", project, " ", "Each person spent (billable/unbillable): ", personal)
 
-
-
-
+client["test"].send('Minutedock', result_string)
 
