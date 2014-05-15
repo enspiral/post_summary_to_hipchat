@@ -2,7 +2,7 @@
 lock '3.2.1'
 
 set :application, 'post_summary_to_hipchat'
-set :repo_url, 'git@github.com/ayumi5/#{application}.git'
+set :repo_url, 'git@github.com/ayumi5/fetch(application).git'
 
 set :stage, :production
 server 'craftworks.enspiral.info', roles: %w{web app db assets}, user: 'notifiers' 
@@ -13,11 +13,11 @@ task :production do
   set :user, "notifiers"
   set :domain, "craftworks.enspiral.info"
   set :branch, "master"
-  set :deploy_to, "/home/notifiers/#{application}/"
+  set :deploy_to, "/home/notifiers/fetch(application)/"
 
-  role :web, domain
-  role :app, domain
-  role :db, domain, :primary => true
+  role :web, fetch(:domain)
+  role :app, fetch(:domain)
+  role :db, fetch(:domain), :primary => true
 end
 
 
