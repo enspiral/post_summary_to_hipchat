@@ -4,9 +4,9 @@ lock '3.2.1'
 set :application, 'post_summary_to_hipchat'
 set :repo_url, 'git@github.com/ayumi5/fetch(application).git'
 
-set :stage, :production
-server 'craftworks.enspiral.info', roles: %w{web app db assets}, user: 'notifiers' 
-# Default value for :scm is :git
+#set :stage, :production
+#server 'craftworks.enspiral.info', roles: %w{web app db assets}, user: 'notifiers' 
+
 set :scm, :git
 
 task :production do
