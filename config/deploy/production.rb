@@ -25,11 +25,11 @@ server 'craftworks.enspiral.info', user: 'notifiers', roles: %w{web app}
 #
 # Global options
 # --------------
-#  set :ssh_options, {
-#    keys: %w(/home/rlisowski/.ssh/id_rsa),
-#    forward_agent: false,
-#    auth_methods: %w(password)
-#  }
+  set :ssh_options, {
+    keys: [File.expand_path('~/.ssh/id_rsa')],
+    forward_agent: true,
+    auth_methods: %w(publickey)
+  }
 #
 # And/or per server (overrides global)
 # ------------------------------------
