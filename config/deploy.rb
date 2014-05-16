@@ -2,7 +2,7 @@
 lock '3.2.1'
 
 set :application, 'post_summary_to_hipchat'
-set :repo_url, 'git@github.com/ayumi5/fetch(application).git'
+set :repo_url, 'git@github.com/enspiral/fetch(application).git'
 set :scm, :git
 
 task :production do
