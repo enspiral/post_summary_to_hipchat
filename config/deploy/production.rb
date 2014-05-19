@@ -8,7 +8,6 @@ role :app, %w{notifiers@craftworks.enspiral.info}
 role :web, %w{notifiers@craftworks.enspiral.info}
 role :db,  %w{notifiers@craftworks.enspiral.info}
 
-
 # Extended Server Syntax
 # ======================
 # This can be used to drop a more detailed server definition into the
@@ -25,11 +24,11 @@ server 'craftworks.enspiral.info', user: 'notifiers', roles: %w{web app}
 #
 # Global options
 # --------------
-  set :ssh_options, {
-    keys: [File.expand_path('~/.ssh/id_rsa')],
-    forward_agent: true,
-    auth_methods: %w(publickey)
-  }
+#  set :ssh_options, {
+#    keys: [File.expand_path('~/.ssh/id_rsa')],
+#    forward_agent: true,
+#    auth_methods: %w(publickey)
+#  }
 #
 # And/or per server (overrides global)
 # ------------------------------------
