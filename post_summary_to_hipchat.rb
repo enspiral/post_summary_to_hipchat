@@ -10,7 +10,7 @@ MINUTEDOCK_URL = "https://minutedock.com/api/v1/"
 yesterday = (Date.today - 1).strftime('%d%b%Y')
 
 api_keys = []
-IO.foreach('./../api_keys.txt') { |key| api_keys << key.chomp.split(":") }
+IO.foreach('./api_keys.txt') { |key| api_keys << key.chomp.split(":") }
 
 project_name = []
 project_time = []
