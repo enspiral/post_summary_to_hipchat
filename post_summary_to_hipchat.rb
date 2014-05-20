@@ -1,13 +1,14 @@
 require 'open-uri'
 require 'date'
+require 'active_support/time'
 require 'hipchat'
 require 'json/pure'
 require './minutedock_class.rb'
 require './daily_time_text_presenter_class.rb'
 
+
 SEPARATOR = ":"
 MINUTEDOCK_URL = "https://minutedock.com/api/v1/"
-yesterday = (Date.today - 1).strftime('%d%b%Y')
 
 api_keys = []
 IO.foreach('./../api_keys.txt') { |key| api_keys << key.chomp.split(":") }
@@ -19,6 +20,14 @@ personal_time = []
 user = Minutedock.new
 presenter = DailyTimeTextPresenter.new
 client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
+
+class Time
+    def convert_to_nz_time(time)
+     time.in_time_zone("Wellington")
+    end
+end
+nz_time = Time.new.convert_to_nz_time(Time.now)
+yesterday = nz_time.to_date - 1
 
 api_keys.map{ |key|
 
