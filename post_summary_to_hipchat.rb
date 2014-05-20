@@ -11,7 +11,8 @@ SEPARATOR = ":"
 MINUTEDOCK_URL = "https://minutedock.com/api/v1/"
 
 api_keys = []
-IO.foreach('./../api_keys.txt') { |key| api_keys << key.chomp.split(":") }
+path_to_api = File.expand_path("~/post_summary_to_hipchat/api_keys.txt")
+IO.foreach(path_to_api) { |key| api_keys << key.chomp.split(":") }
 
 project_name = []
 project_time = []
