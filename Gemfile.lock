@@ -7,9 +7,15 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.1)
       tzinfo (~> 1.1)
+    hipchat (1.1.0)
+      httparty
+    httparty (0.13.0)
+      json (~> 1.8)
+      multi_xml (>= 0.5.2)
     i18n (0.6.9)
     json (1.8.1)
     minitest (5.3.4)
+    multi_xml (0.5.5)
     thread_safe (0.3.3)
     tzinfo (1.1.0)
       thread_safe (~> 0.1)
@@ -19,4 +25,5 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (~> 4.1.1)
+  hipchat (~> 1.1.0)
   i18n (~> 0.6.9)
