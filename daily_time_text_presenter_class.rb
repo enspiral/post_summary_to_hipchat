@@ -28,11 +28,14 @@ class DailyTimeTextPresenter
     result = []
     hash.map{ |hash|
       billiable = convert_time(hash[:billiable])
+      billiable = remove_decimal(billiable)
       unbilliable = convert_time(hash[:unbilliable])
-      result << "#{hash[:name]} (#{billiable} / #{unbilliable})"
+      unbilliable = remove_decimal(unbilliable)
+      result << "#{hash[:name]}(#{billiable}/#{unbilliable})"
     }
     result
   end
+
 
   def put_together(*args)
     array = []
@@ -40,12 +43,21 @@ class DailyTimeTextPresenter
     array.join(" ")
   end
 
-  private
-
   def convert_time(interval = 2.0, time)
       time = change_second_to_hour(time)
       time = round_to_nearest(interval, time)
   end
+
+  def remove_decimal(number)
+    decimal = number - number.to_i
+    if decimal < 0.5
+      number.to_i
+    else
+      number
+    end
+  end
+
+  private
 
   def get_value_by_key(hash, *key)
     array = []
