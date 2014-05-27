@@ -13,7 +13,7 @@ class DailyTimeChartPresenter
   def generate_bar_chart_url(title, legends, labels, *data)
     Gchart.bar( :size => '750x400', 
                 :data => data, 
-                :bar_width_and_spacing => '20,70',
+                :bar_width_and_spacing => '20,50',
                 :max_value => 15,
                 :theme => :pastel,
                 :title => title,
@@ -24,12 +24,11 @@ class DailyTimeChartPresenter
                 :bar_colors => 'ff0000,0000ff')
   end
 
-  def generate_person_time_bar_chart(title, legends, labels, limit_number = 8, bill, unbill)
+  def generate_person_time_bar_chart(title, legends, labels, limit_number = 9, bill, unbill)
     charts = []
     display_labels = []
     billable = []
     unbillable = []
-
 
     until labels.length <= 0
       if labels.length >= limit_number
@@ -38,7 +37,7 @@ class DailyTimeChartPresenter
             billable << bill[i]
             unbillable << unbill[i]
         }
-        labels = labels - display_labels
+        labels -= display_labels
         bill.slice!(0...limit_number)
         unbill.slice!(0...limit_number)
       else

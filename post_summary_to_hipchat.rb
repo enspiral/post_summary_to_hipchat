@@ -9,6 +9,7 @@ require './daily_time_chart_presenter_class.rb'
 
 
 SEPARATOR = ":"
+POST_AS = "Minutedock"
 MINUTEDOCK_URL = "https://minutedock.com/api/v1/"
 
 api_keys = []
@@ -57,7 +58,7 @@ personal = presenter.format_personal_time(personal_time)
 
 project_time.map { |project|
   projects << project[:project] + SEPARATOR + presenter.remove_decimal(presenter.convert_time(project[:time])).to_s
-  time << project[:time]
+  time << presenter.convert_time(project[:time])
 }
 
 personal_time.map { |personal|
@@ -68,8 +69,7 @@ personal_time.map { |personal|
 pie_chart = chart_presenter.generate_pie_chart_url("Hours Spent on Each Project Yesterday", projects, time)
 bar_charts =  chart_presenter.generate_person_time_bar_chart("Hours Worked by Each Person Yesterday",['billable', 'unbillable'], personal, bill, unbill)
 
-
-client["BotLab"].send('Minutedock', pie_chart, :message_format => 'text')
+client["Craftworks General"].send(POST_AS, pie_chart, :message_format => 'text')
 bar_charts.map{ |bar_chart|
-  client["BotLab"].send('Minutedock', bar_chart, :message_format => 'text')
+  client["Craftworks General"].send(POST_AS, bar_chart, :message_format => 'text')
 }
