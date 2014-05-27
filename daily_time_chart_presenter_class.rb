@@ -11,10 +11,9 @@ class DailyTimeChartPresenter
   end
 
   def generate_bar_chart_url(title, legends, labels, *data)
-    Gchart.bar( :size => '700x400', 
+    Gchart.bar( :size => '750x400', 
                 :data => data, 
-                :bar_width_and_spacing => '15,45',
-                :stacked => false,
+                :bar_width_and_spacing => '20,70',
                 :max_value => 15,
                 :theme => :pastel,
                 :title => title,
