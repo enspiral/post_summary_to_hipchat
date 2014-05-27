@@ -12,13 +12,16 @@ SEPARATOR = ":"
 MINUTEDOCK_URL = "https://minutedock.com/api/v1/"
 
 api_keys = []
-path_to_api = File.expand_path("~/post_summary_to_hipchat/api_keys.txt")
-IO.foreach(path_to_api) { |key| api_keys << key.chomp.split(":") }
-
-
 project_name = []
 project_time = []
 personal_time = []
+projects = []
+time = []
+bill = []
+unbill = []
+
+path_to_api = File.expand_path("~/post_summary_to_hipchat/api_keys.txt")
+IO.foreach(path_to_api) { |key| api_keys << key.chomp.split(":") }
 
 user = Minutedock.new
 presenter = DailyTimeTextPresenter.new
@@ -27,11 +30,11 @@ client = HipChat::Client.new("6ece3454ac2e42e41faa3f384d5957")
 
 class Time
     def convert_to_nz_time(time)
-     time.in_time_zone("Wellington")
+      time.in_time_zone("Wellington")
     end
 end
 nz_time = Time.new.convert_to_nz_time(Time.now)
-yesterday = nz_time.to_date - 2
+yesterday = nz_time.to_date - 1
 
 api_keys.map{ |key|
 
@@ -48,24 +51,23 @@ api_keys.map{ |key|
   user.add_time(project_item, time_item, project_time, project_name)
 
 }
-projects = []
-time = []
+
+project =  presenter.format_project_time(project_time)
+personal = presenter.format_personal_time(personal_time)
+
 project_time.map { |project|
   projects << project[:project] + SEPARATOR + presenter.remove_decimal(presenter.convert_time(project[:time])).to_s
   time << project[:time]
 }
-bill = []
-unbill = []
+
 personal_time.map { |personal|
   bill << presenter.convert_time(personal[:billiable])
   unbill << presenter.convert_time(personal[:unbilliable])
 }
 
-project =  presenter.format_project_time(project_time)
-personal = presenter.format_personal_time(personal_time)
+pie_chart = chart_presenter.generate_pie_chart_url("Hours Spent on Each Project Yesterday", projects, time)
+bar_charts =  chart_presenter.generate_person_time_bar_chart("Hours Worked by Each Person Yesterday",['billable', 'unbillable'], personal, bill, unbill)
 
-pie_chart = chart_presenter.generate_pie_chart_url('Projcet Time', projects, time)
-bar_charts =  chart_presenter.generate_bar_chart_url("Each Person Time",['billable', 'unbillable'],personal, bill, unbill)
 
 client["test"].send('Minutedock', pie_chart, :message_format => 'text')
 bar_charts.map{ |bar_chart|
