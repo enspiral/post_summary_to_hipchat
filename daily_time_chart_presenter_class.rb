@@ -21,7 +21,7 @@ class DailyTimeChartPresenter
                 :axis_labels => [labels, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]],
                 :legend => legends,
                 :bg => {:color => 'efefef'},
-                :bar_colors => 'ff0000,0000ff')
+                :bar_colors => '138307,9AF978')
   end
 
   def generate_person_time_bar_chart(title, legends, labels, limit_number = 9, bill, unbill)
