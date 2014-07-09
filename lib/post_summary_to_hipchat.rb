@@ -21,9 +21,8 @@ time = []
 bill = []
 unbill = []
 
-#path_to_api = File.expand_path("~/post_summary_to_hipchat/api_keys.txt")
-#IO.foreach(path_to_api) { |key| api_keys << key.chomp.split(":") }
-IO.foreach('./../../api_keys.txt') { |key| api_keys << key.chomp.split(":") }
+path_to_api = File.expand_path("~/post_summary_to_hipchat/api_keys.txt")
+IO.foreach(path_to_api) { |key| api_keys << key.chomp.split(":") }
 
 user = Minutedock.new
 presenter = DailyTimeTextPresenter.new
@@ -36,7 +35,7 @@ class Time
     end
 end
 nz_time = Time.new.convert_to_nz_time(Time.now)
-yesterday = nz_time.to_date - 2
+yesterday = nz_time.to_date - 1
 
 api_keys.map{ |key|
 
@@ -69,9 +68,8 @@ personal_time.map { |personal|
 
 pie_chart = chart_presenter.generate_pie_chart_url("Hours Spent on Each Project Yesterday", projects, time)
 puts bar_charts =  chart_presenter.generate_person_time_bar_chart("Hours Worked by Each Person Yesterday",['billable', 'unbillable'], personal, bill, unbill)
-=begin
-client["test"].send(POST_AS, pie_chart, :message_format => 'text')
+
+client["Craftworks General"].send(POST_AS, pie_chart, :message_format => 'text')
 bar_charts.map{ |bar_chart|
-  client["test"].send(POST_AS, bar_chart, :message_format => 'text')
+  client["Craftworks General"].send(POST_AS, bar_chart, :message_format => 'text')
 }
-=end
