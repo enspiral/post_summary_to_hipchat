@@ -67,7 +67,7 @@ personal_time.map { |personal|
 }
 
 pie_chart = chart_presenter.generate_pie_chart_url("Hours Spent on Each Project Yesterday", projects, time)
-puts bar_charts =  chart_presenter.generate_person_time_bar_chart("Hours Worked by Each Person Yesterday",['billable', 'unbillable'], personal, bill, unbill)
+bar_charts =  chart_presenter.generate_person_time_bar_chart("Hours Worked by Each Person Yesterday",['billable', 'unbillable'], personal, bill, unbill)
 
 client["Craftworks General"].send(POST_AS, pie_chart, :message_format => 'text')
 bar_charts.map{ |bar_chart|
